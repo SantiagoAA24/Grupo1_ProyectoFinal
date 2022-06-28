@@ -1,0 +1,238 @@
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cstdlib>
+#include <cmath>
+
+using namespace std;
+
+// Ec de onda en 2D en coordenadas polares
+
+void solucion(int N, float dn, int M, float dm, float P, float c, float v0, int k) { // 1 <= k <= 15
+	const double pi = std::acos(-1);
+	const double rad = pi / 180.0;
+	
+	float h;
+	float dh;
+	float a;
+	
+	float dt = 0.5 * dn / c; // Diferencial de tiempo
+	int T = P / dt; // Numero de puntos en el intervalo de tiempo
+	
+	// ArregloS de posiciones de cada punto de la membrana
+	float u_pas[N+1][M+2];
+	float u_pre[N+1][M+2];
+	float u_fut[N+1][M+2];
+	
+	ofstream sol;
+	
+	// Estado inicial de la membrana
+	switch (k) {
+		case 1:
+			sol.open("membrana_caso1.txt");
+			// CASO: Cono
+			h = 0.1; // Altura del origen
+			dh = h / N; // Diferencial de altura
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = h - i * dh;
+			break;
+		case 2:
+			sol.open("membrana_caso2.txt");
+			// CASO: Campana Gaussiana de 1er orden con R = 1.0
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = std::exp(-i*dn * i*dn) - std::exp(-1.0);
+			break;
+		case 3:
+			sol.open("membrana_caso3.txt");
+			// CASO: Campana Gaussiana de 1er orden con R = 2.0
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = std::exp(-2.0*i*dn * 2.0*i*dn) - std::exp(-4.0);
+			break;
+		case 4:
+			sol.open("membrana_caso4.txt");
+			// CASO: Campana Gaussiana de 1er orden con R = 3.0
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = std::exp(-3.0*i*dn * 3.0*i*dn) - std::exp(-9.0);
+			break;
+		case 5:
+			sol.open("membrana_caso5.txt");
+			// CASO: Campana Gaussiana de 2er orden con R = 3.0
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = -6.0*i*dn * std::cos(j*dm*rad) * std::exp(-3.0*i*dn * 3.0*i*dn) +6.0*std::exp(-9.0);
+			break;
+		case 6:
+			sol.open("membrana_caso6.txt");
+			// CASO: Campana Gaussiana de 2er orden con R = 5.0
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = -10.0*i*dn * std::cos(j*dm*rad) * std::exp(-5.0*i*dn * 5.0*i*dn) +10.0*std::exp(-25.0);
+			break;
+		case 7:
+			sol.open("membrana_caso7.txt");
+			// CASO: Campana Gaussiana de 2er orden con R = 10.0
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = -20.0*i*dn * std::cos(j*dm*rad) * std::exp(-10.0*i*dn * 10.0*i*dn) +20.0*std::exp(-100.0);
+			break;
+		case 8:
+			sol.open("membrana_caso8.txt");
+			// CASO: Campana Gaussiana de 3er orden con R = 3.0
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = 2.0*(18.0*i*dn*i*dn * std::cos(j*dm*rad)*std::cos(j*dm*rad) -1.0) * std::exp(-3.0*i*dn * 3.0*i*dn) +2.0*17.0*std::exp(-9.0);
+			break;
+		case 9:
+			sol.open("membrana_caso9.txt");
+			// CASO: Campana Gaussiana de 3er orden con R = 5.0
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = 2.0*(50.0*i*dn*i*dn * std::cos(j*dm*rad)*std::cos(j*dm*rad) -1.0) * std::exp(-5.0*i*dn * 5.0*i*dn) +2.0*49.0*std::exp(-25.0);
+			break;
+		case 10:
+			sol.open("membrana_caso10.txt");
+			// CASO: Modo normal J_01 (m = 0, n = 1)
+			a = 2.4048;
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = _j0(a*i*dn) * std::cos(0 * j*dm*rad);
+			break;
+		case 11:
+			sol.open("membrana_caso11.txt");
+			// CASO: Modo normal J_02 (m = 0, n = 2)
+			a = 5.5201;
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = _j0(a*i*dn) * std::cos(0 * j*dm*rad);
+			break;
+		case 12:
+			sol.open("membrana_caso12.txt");
+			// CASO: Modo normal J_03 (m = 0, n = 3)
+			a = 8.6537;
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = _j0(a*i*dn) * std::cos(0 * j*dm*rad);
+			break;
+		case 13:
+			sol.open("membrana_caso13.txt");
+			// CASO: Modo normal J_11 (m = 1, n = 1)
+			a = 3.8317;
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = _j1(a*i*dn) * std::cos(1 * j*dm*rad);
+			break;
+		case 14:
+			sol.open("membrana_caso14.txt");
+			// CASO: Modo normal J_12 (m = 1, n = 2)
+			a = 7.0156;
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = _j1(a*i*dn) * std::cos(1 * j*dm*rad);
+			break;
+		case 15:
+			sol.open("membrana_caso15.txt");
+			// CASO: Modo normal J_13 (m = 1, n = 3)
+			a = 10.1735;
+			for (int i = 0; i < N+1; i++)
+				for (int j = 0; j < M+2; j++)
+					u_pas[i][j] = _j1(a*i*dn) * std::cos(1 * j*dm*rad);
+			break;
+	}
+	
+	// Condicion de frontera fija en los extremos de la membrana (r = 1.0)
+	for (int j = 0; j < M+2; j++) {
+		u_pas[N][j] = 0.0;
+		u_pre[N][j] = 0.0;
+		u_fut[N][j] = 0.0;
+	}
+	
+	// Guardando los datos de u_pas
+	for (int i = 0; i < N+1; i++) {
+		sol << u_pas[i][1];
+		for (int j = 2; j < M+2; j++)
+			sol << "," << u_pas[i][j];
+		sol << endl;
+	}
+	
+	// Condicion de velocidad inicial en la membrana
+	for (int i = N-1; i > 0; i--) {
+		for (int j = 1; j < M+1; j++)
+			u_pre[i][j] = u_pas[i][j] + v0*dt + 0.5 * c*c * dt*dt * ((u_pas[i+1][j] - 2 * u_pas[i][j] + u_pas[i-1][j])/(dn*dn) + (u_pas[i+1][j] - u_pas[i-1][j])/(2*dn) + (u_pas[i][j+1] - 2 * u_pas[i][j] + u_pas[i][j-1])/(dm*dm));
+		// Condiciones periodicas en theta
+		u_pre[i][0] = u_pre[i][M];
+		u_pre[i][M+1] = u_pre[i][1];
+	}
+	
+	// Punto en el origen: Usando promedio de los cuatro puntos perpendiculares
+	for (int j = 0; j < M+2; j++)
+		u_pre[0][j] = 0.25 * (u_pre[1][1] + u_pre[1][int(0.25*M)+1] + u_pre[1][int(0.5*M)+1] + u_pre[1][int(0.75*M)+1]);
+	
+	// Creando los demas instantes de tiempo
+	for (int k = 2; k < T; k++) {
+		// Estado futuro de la cuerda
+		for (int i = N-1; i > 0; i--) {
+			for (int j = 1; j < M+1; j++)
+				u_fut[i][j] = 2 * u_pre[i][j] - u_pas[i][j] + c*c * dt*dt * ((u_pre[i+1][j] - 2 * u_pre[i][j] + u_pre[i-1][j])/(dn*dn) + (u_pre[i+1][j] - u_pre[i-1][j])/(2*dn) + (u_pre[i][j+1] - 2 * u_pre[i][j] + u_pre[i][j-1])/(dm*dm));
+			// Condiciones periodicas en theta
+			u_fut[i][0] = u_fut[i][M];
+			u_fut[i][M+1] = u_fut[i][1];
+		}
+		
+		// Punto en el origen: Usando promedio de los cuatro puntos perpendiculares
+		for (int j = 0; j < M+2; j++)
+			u_fut[0][j] = 0.25 * (u_fut[1][1] + u_fut[1][int(0.25*M)+1] + u_fut[1][int(0.5*M)+1] + u_fut[1][int(0.75*M)+1]);
+		
+		if (k % 10 == 0) {
+			// Guardando los datos de u_fut cada 10 instantes de tiempo
+			for (int i = 0; i < N+1; i++) {
+				sol << u_fut[i][1];
+				for (int j = 2; j < M+2; j++)
+					sol << "," << u_fut[i][j];
+				sol << endl;
+			}
+		}
+		
+		// Redefiniendo arreglos de pasado y presente para pasar al instante siguiente
+		for (int i = 0; i < N+1; i++)
+			for (int j = 0; j < M+2; j++) {
+				u_pas[i][j] = u_pre[i][j];
+				u_pre[i][j] = u_fut[i][j];
+			}
+	}
+	
+	sol.close();
+}
+
+int main() {
+	float R = 1.0; // Radio de la membrana
+	int N = 100;
+	float dn = R / N;
+	int M = 180; // Debe ser multiplo de 4
+	float dm = 360.0 / M;
+	float P = 0.1; // Tiempo final
+	float c = 300.0;
+	float v0 = 0.0; // Velocidad inicial de la membrana
+	
+	solucion(N, dn, M, dm, P, c, v0, 1); // CASO: Cono
+	solucion(N, dn, M, dm, P, c, v0, 2); // CASO: Campana Gaussiana de 1er orden con R = 1.0
+	solucion(N, dn, M, dm, P, c, v0, 3); // CASO: Campana Gaussiana de 1er orden con R = 2.0
+	solucion(N, dn, M, dm, P, c, v0, 4); // CASO: Campana Gaussiana de 1er orden con R = 3.0
+	solucion(N, dn, M, dm, P, c, v0, 5); // CASO: Campana Gaussiana de 2er orden con R = 3.0
+	solucion(N, dn, M, dm, P, c, v0, 6); // CASO: Campana Gaussiana de 2er orden con R = 5.0
+	solucion(N, dn, M, dm, P, c, v0, 7); // CASO: Campana Gaussiana de 2er orden con R = 10.0
+	solucion(N, dn, M, dm, P, c, v0, 8); // CASO: Campana Gaussiana de 3er orden con R = 3.0
+	solucion(N, dn, M, dm, P, c, v0, 9); // CASO: Campana Gaussiana de 3er orden con R = 5.0
+	solucion(N, dn, M, dm, P, c, v0, 10); // CASO: Modo normal J_01 (m = 0, n = 1)
+	solucion(N, dn, M, dm, P, c, v0, 11); // CASO: Modo normal J_02 (m = 0, n = 2)
+	solucion(N, dn, M, dm, P, c, v0, 12); // CASO: Modo normal J_03 (m = 0, n = 3)
+	solucion(N, dn, M, dm, P, c, v0, 13); // CASO: Modo normal J_11 (m = 1, n = 1)
+	solucion(N, dn, M, dm, P, c, v0, 14); // CASO: Modo normal J_12 (m = 1, n = 2)
+	solucion(N, dn, M, dm, P, c, v0, 15); // CASO: Modo normal J_13 (m = 1, n = 3)
+	
+	return 0;
+}
