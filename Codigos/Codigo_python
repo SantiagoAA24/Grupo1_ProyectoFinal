@@ -1,0 +1,144 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.animation as animation
+import animatplot as amp
+
+# Animacion de una membrana en 2D
+
+def animacion(k):
+    def membrana(k): # 1 <= k <= 15
+        mem = np.transpose(np.genfromtxt("membrana_caso" + str(k) + ".txt", delimiter = ",")) # Llamando archivo membrana
+        return mem
+
+    mem = membrana(k)
+    # print(mem)
+    M, NP = np.shape(mem)
+    # print(M)
+    P = int(NP / 101)
+    # print(P)
+    N = int(NP / P)
+    # print(N)
+
+    t = np.linspace(0,P,P+1) # Arreglo de tiempo
+
+    Mem = []
+    for i in range(P):
+        lim = N*i
+        Mem.append(mem[:,lim:lim+N]) # Separamos el arreglo inicial (2D) en uno que contenga cada uno de los instantes en una arreglo de 3D
+    # print(Mem)
+
+    r = np.linspace(0.0, 1.0, N, endpoint = True) # Arreglo de radios
+    # print(np.shape(r))
+    # print(r)
+
+    a = np.linspace(0.0, 360.0, M, endpoint = True) # Arreglo de ángulos
+    # print(np.shape(a))
+    # print(a)
+
+    R, A = np.meshgrid(r, a) # Malla entre r y a necesaria para graficar
+    # print(np.shape(R))
+    # print(np.shape(A))
+    # print(R)
+    # print(A)
+
+    # Transformacion de malla en coordenadas polares a coordenadas cartesianas
+    X = R * np.cos(np.radians(A))
+    Y = R * np.sin(np.radians(A))
+    # print(np.shape(X))
+    # print(np.shape(Y))
+    # print(X)
+    # print(Y)
+
+    fig = plt.figure()
+    ax = fig.gca(projection = '3d')
+    
+    # Funcion para alcualizar el gráfico y poder mostrar la animación
+    def actualizar(i): 
+        ax.clear()
+        Z = Mem[i]
+        if k == 1:
+            ax.plot_surface(X, Y, Z, cmap = 'inferno', antialiased = True) # Gráfico de la superficie en coordenadas cartesianas y 'antialiased' suavisa la gráfica obtenida
+            # ax.plot_surface(R, A, Z, cmap = 'viridis', antialiased = True) # Gráfico de la superficie en coordenadas cilíndricas y 'antialiased' suavisa la gráfica obtenida
+        elif k == 2 or k == 3 or k == 4:
+            ax.plot_surface(X, Y, Z, cmap = 'viridis', antialiased = True)
+            # ax.plot_surface(R, A, Z, cmap = 'viridis', antialiased = True)
+        elif k == 5 or k == 6 or k == 7:
+            ax.plot_surface(X, Y, Z, cmap = 'Spectral', antialiased = True)
+            # ax.plot_surface(R, A, Z, cmap = 'viridis', antialiased = True)
+        elif k == 8 or k == 9:
+            ax.plot_surface(X, Y, Z, cmap = 'RdBu', antialiased = True)
+            # ax.plot_surface(R, A, Z, cmap = 'viridis', antialiased = True)
+        elif k == 10 or k == 11 or k == 12:
+            ax.plot_surface(X, Y, Z, cmap = 'RdBu', antialiased = True)
+            # ax.plot_surface(R, A, Z, cmap = 'viridis', antialiased = True)
+        elif k == 13 or k == 14 or k == 15:
+            ax.plot_surface(X, Y, Z, cmap = 'seismic', antialiased = True)
+            # ax.plot_surface(R, A, Z, cmap = 'viridis', antialiased = True)
+        ax.set_xlim(-1.1,1.1) # Limites de x
+        # ax.set_xlim(-0.1,1.1) # Limites de r
+        ax.set_ylim(-1.1,1.1) # Limites de y
+        # ax.set_ylim(-0.1,360.1) # Limites de theta
+        # Limites de z
+        if k == 1:
+            ax.set_zlim(-0.11, 0.11)
+        elif k == 2:
+            ax.set_zlim(-0.65, 0.65)
+        elif k == 3 or k == 4 or k == 5 or k == 6 or k == 7 or k == 10 or k == 11 or k == 12 or k == 13 or k == 14 or k == 15:
+            ax.set_zlim(-1.1, 1.1)
+        elif k == 8 or k == 9:
+            ax.set_zlim(-2.1, 2.1)
+
+    ani = animation.FuncAnimation(fig, actualizar, range(len(t)-1), interval = 10, repeat = False) # Animación del gráfico
+    # plt.show()
+
+    writervideo=animation.PillowWriter(fps=20) # 'fps' ayuda a mostrar la animación con cierta fluidez definida
+    ani.save('Gif_membrana_caso' + str(k) + '.gif', writer=writervideo) # Guardando .gif obtenido
+
+    nfig = plt.figure()
+    Axes3d = Axes3D(nfig)
+    if k == 1:
+        Axes3d.plot_surface(X, Y, Mem[0], cmap='inferno')
+    elif k == 2 or k == 3 or k == 4:
+        Axes3d.plot_surface(X, Y, Mem[0], cmap='viridis')
+    elif k == 5 or k == 6 or k == 7:
+        Axes3d.plot_surface(X, Y, Mem[0], cmap='Spectral')
+    elif k == 8 or k == 9:
+        Axes3d.plot_surface(X, Y, Mem[0], cmap='RdBu')
+    elif k == 10 or k == 11 or k == 12:
+        Axes3d.plot_surface(X, Y, Mem[0], cmap='RdBu')
+    elif k == 13 or k == 14 or k == 15:
+        Axes3d.plot_surface(X, Y, Mem[0], cmap='seismic')
+    ax.set_xlim(-1.1,1.1) # Limites de x
+    ax.set_ylim(-1.1,1.1) # Limites de y
+    # Limites de z
+    if k == 1:
+        ax.set_zlim(-0.11, 0.11)
+    elif k == 2:
+        ax.set_zlim(-0.65, 0.65)
+    elif k == 3 or k == 4 or k == 5 or k == 6 or k == 7 or k == 10 or k == 11 or k == 12 or k == 13 or k == 14 or k == 15:
+        ax.set_zlim(-1.1, 1.1)
+    elif k == 8 or k == 9:
+        ax.set_zlim(-2.1, 2.1)
+    plt.savefig('estado_inicial_membrana_caso' + str(k) + '.jpg')
+    # plt.show()
+    
+for i in range(15):
+    animacion(i+1)
+
+# CASOS DE k
+# Caso 1: Cono
+# Caso 2: Campana Gaussiana de 1er orden con R = 1.0
+# Caso 3: Campana Gaussiana de 1er orden con R = 2.0
+# Caso 4: Campana Gaussiana de 1er orden con R = 3.0
+# Caso 5: Campana Gaussiana de 2er orden con R = 3.0
+# Caso 6: Campana Gaussiana de 2er orden con R = 5.0
+# Caso 7: Campana Gaussiana de 2er orden con R = 10.0
+# Caso 8: Campana Gaussiana de 3er orden con R = 3.0
+# Caso 9: Campana Gaussiana de 3er orden con R = 5.0
+# Caso 10: Modo normal J_01 (m = 0, n = 1)
+# Caso 11: Modo normal J_02 (m = 0, n = 2)
+# Caso 12: Modo normal J_03 (m = 0, n = 3)
+# Caso 13: Modo normal J_11 (m = 1, n = 1)
+# Caso 14: Modo normal J_12 (m = 1, n = 2)
+# Caso 15: Modo normal J_13 (m = 1, n = 3)
